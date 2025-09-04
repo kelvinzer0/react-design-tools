@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML to Handlebars Template Generator</title>
+    <meta name="description" content="Convert your HTML code into Handlebars templates with default data. Generate preview and block export easily.">
+    <meta name="keywords" content="HTML to Handlebars, Handlebars generator, HTML converter, template generator, web development tools">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f1e8;
+            color: #5c4b37;
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #fffbf0;
+            box-shadow: 0 5px 15px rgba(92, 75, 55, 0.08);
+            overflow: hidden;
+            min-height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background-color: #8c7b6b;
+            color: #fffbf0;
+            padding: 25px 30px;
+            border-bottom: 1px solid #d3c8b5;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            flex: 1;
+        }
+
+        .input-section,
+        .output-section {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-section {
+            background-color: #f9f6ef;
+            border-right: 1px solid #e5ddd0;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: #5c4b37;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #d3c8b5;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #5c4b37;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d3c8b5;
+            background-color: #fff;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+            font-family: 'Courier New', monospace;
+            color: #5c4b37;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #8c7b6b;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 200px;
+        }
+
+        .generate-btn {
+            background-color: #8c7b6b;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-top: 10px;
+        }
+
+        .generate-btn:hover {
+            background-color: #7a6a5b;
+        }
+
+        .output-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .output-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .output-label {
+            font-weight: 600;
+            color: #5c4b37;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .copy-btn {
+            background: #a08e7c;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .copy-btn:hover {
+            background: #8c7b6b;
+        }
+
+        .output-code {
+            width: 50vw;
+            background: #2d2a26;
+            color: #e5ddd0;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            overflow-x: auto;
+            white-space: pre;
+            flex: 1;
+            min-height: 150px;
+        }
+
+        /* Scrollbar styling */
+        .output-code::-webkit-scrollbar {
+            height: 10px;
+        }
+
+        .output-code::-webkit-scrollbar-track {
+            background: #3c3832;
+        }
+
+        .output-code::-webkit-scrollbar-thumb {
+            background: #8c7b6b;
+        }
+
+        .output-code::-webkit-scrollbar-thumb:hover {
+            background: #7a6a5b;
+        }
+
+        @media (max-width: 900px) {
+            .output-code {
+                width: 80vw;
+                max-width: 900px;
+            }
+
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .input-section {
+                border-right: none;
+                border-bottom: 1px solid #e5ddd0;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .output-code {
+                width: 95vw;
+                max-width: 600px;
+            }
+
+            .header,
+            .input-section,
+            .output-section {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+        }
+
+        .keyword {
+            color: #d8a657;
+        }
+
+        .string {
+            color: #a39a74;
+        }
+
+        .property {
+            color: #d6d0b9;
+        }
+    </style>
+</head>
+
+<body>
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "HTML to Handlebars Template Generator",
+  "url": "https://react-design-tools.tcp4.me/handlebars-generator",
+  "applicationCategory": "WebDevelopmentTool",
+  "description": "Convert HTML code into Handlebars templates with default data and export block preview.",
+  "operatingSystem": "Web",
+  "creator": {
+    "@type": "Person",
+    "name": "Kelvin Yuli Andrian"
+  }
+}
+</script>
+
+    <div class="container">
+        <div class="header">
+            <h1>🔧 HTML to Handlebars Template Generator</h1>
+            <p>Convert your HTML code into Handlebars templates with default data</p>
+
+            
+            
+
+        </div>
+
+        <div class="main-content">
+            <div class="input-section">
+                <h2 class="section-title">HTML Input</h2>
+
+                <div class="form-group">
+                    <label for="blockName">Nama Block:</label>
+                    <input type="text" id="blockName" value="hero section" placeholder="Masukkan nama block...">
+                </div>
+
+                <div class="form-group">
+                    <label for="category">Kategori:</label>
+                    <input type="text" id="category" value="hero" placeholder="Masukkan kategori...">
+                </div>
+
+                <div class="form-group">
+                    <label for="htmlInput">HTML Input:</label>
+                    <textarea id="htmlInput" placeholder="Masukkan HTML yang ingin dikonversi...">&lt;div id="hero" class="main-section"&gt;
+  &lt;h2 class="title"&gt;Selamat Datang&lt;/h2&gt;
+  &lt;p id="desc"&gt;Deskripsi singkat&lt;/p&gt;
+&lt;/div&gt;</textarea>
+                </div>
+
+                <button class="generate-btn" onclick="generateHandlebars()">
+                    ✨ Generate Handlebars
+                </button>
+            </div>
+
+            <div class="output-section">
+                <h2 class="section-title">Generated Output</h2>
+
+                <div class="output-container">
+                    <div class="output-group">
+                        <div class="output-label">
+                            Template Handlebars:
+                            <button class="copy-btn" onclick="copyToClipboard('hbsOutput')">Copy</button>
+                        </div>
+                        <div class="output-code" id="hbsOutput">// Generate template terlebih dahulu</div>
+                    </div>
+
+                    <div class="output-group">
+                        <div class="output-label">
+                            Export Block:
+                            <button class="copy-btn" onclick="copyToClipboard('blockOutput')">Copy</button>
+                        </div>
+                        <div class="output-code" id="blockOutput">// Generate block terlebih dahulu</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let elementCounter = 0;
+
+        function generateHandlebars() {
+            const htmlInput = document.getElementById('htmlInput').value;
+            const blockName = document.getElementById('blockName').value || 'generated block';
+            const category = document.getElementById('category').value || 'general';
+
+            elementCounter = 0;
+
+            try {
+                // Parse HTML
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlInput, 'text/html');
+                const body = doc.body;
+
+                const defaultData = {};
+                const processedHTML = processElement(body, defaultData);
+
+                // Generate Handlebars template
+                const hbsTemplate = processedHTML.innerHTML;
+
+                // Generate SVG preview
+                const svgText = generateSVG(hbsTemplate);
+                const previewImageUrl = "data:image/svg+xml;base64," + btoa(svgText);
+
+                // Generate block export
+                const blockExport = generateBlockExport(hbsTemplate, blockName, category, defaultData, previewImageUrl);
+
+                // Display results
+                displayResults(hbsTemplate, blockExport);
+
+            } catch (error) {
+                alert('Error parsing HTML: ' + error.message);
+            }
+        }
+
+        function processElement(element, defaultData) {
+            const clonedElement = element.cloneNode(true);
+
+            // Process all children first
+            const children = Array.from(clonedElement.children);
+            children.forEach(child => {
+                const processedChild = processElement(child, defaultData);
+                child.parentNode.replaceChild(processedChild, child);
+            });
+
+            // Process current element
+            if (clonedElement.tagName) {
+                const tagName = clonedElement.tagName.toLowerCase();
+
+                // Process attributes
+                const attributes = Array.from(clonedElement.attributes);
+                attributes.forEach(attr => {
+                    if (attr.value && attr.value.trim()) {
+                        const key = `${tagName}_${attr.name}_${elementCounter}`;
+                        defaultData[key] = attr.value;
+                        clonedElement.setAttribute(attr.name, `{{${key}}}`);
+                    }
+                });
+
+                // Process text content for specific tags
+                if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'div', 'a', 'button'].includes(tagName)) {
+                    const textContent = getDirectTextContent(clonedElement);
+                    if (textContent && textContent.trim()) {
+                        const key = `${tagName}_content_${elementCounter}`;
+                        defaultData[key] = textContent.trim();
+
+                        // Replace only direct text content
+                        replaceDirectTextContent(clonedElement, `{{${key}}}`);
+                    }
+                }
+
+                // Special handling for img tags
+                if (tagName === 'img') {
+                    if (!clonedElement.hasAttribute('src')) {
+                        const key = `img_src_${elementCounter}`;
+                        defaultData[key] = 'image.jpg';
+                        clonedElement.setAttribute('src', `{{${key}}}`);
+                    }
+                    if (!clonedElement.hasAttribute('alt')) {
+                        const key = `img_alt_${elementCounter}`;
+                        defaultData[key] = 'Image description';
+                        clonedElement.setAttribute('alt', `{{${key}}}`);
+                    }
+                }
+
+                elementCounter++;
+            }
+
+            return clonedElement;
+        }
+
+        function getDirectTextContent(element) {
+            let text = '';
+            for (let node of element.childNodes) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    text += node.textContent;
+                }
+            }
+            return text;
+        }
+
+        function replaceDirectTextContent(element, replacement) {
+            for (let node of element.childNodes) {
+                if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+                    node.textContent = replacement;
+                    break; // Only replace the first text node
+                }
+            }
+        }
+
+        function generateSVG(template) {
+            const escapedTemplate = template
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+
+            return `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200">
+  <rect width="100%" height="100%" fill="white"/>
+  <foreignObject x="10" y="10" width="380" height="180">
+    <pre xmlns="http://www.w3.org/1999/xhtml"
+         style="font-size:12px; font-family:monospace; color:black; white-space:pre-wrap;">
+${escapedTemplate}
+    </pre>
+  </foreignObject>
+</svg>`;
+        }
+
+        function generateBlockExport(hbs, name, category, defaultData, previewImageUrl) {
+            const hbsString = JSON.stringify(hbs, null, 2);
+            const defaultDataString = JSON.stringify(defaultData, null, 4);
+
+            return `const hbs = ${hbsString};
+
+const svgText = \`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200">
+  <rect width="100%" height="100%" fill="white"/>
+  <foreignObject x="10" y="10" width="380" height="180">
+    <pre xmlns="http://www.w3.org/1999/xhtml"
+         style="font-size:12px; font-family:monospace; color:black; white-space:pre-wrap;">
+${hbs.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}
+    </pre>
+  </foreignObject>
+</svg>\`;
+
+const previewImageUrl = "data:image/svg+xml;base64," + Buffer.from(svgText).toString("base64");
+
+const block = {
+  hbs,
+  name: "${name}",
+  previewImageUrl,
+  category: "${category}",
+  defaultData: ${defaultDataString}
+};
+
+export default block;`;
+        }
+
+        function displayResults(hbs, blockExport) {
+            // Clean display for Handlebars template
+            document.getElementById('hbsOutput').textContent = hbs;
+
+            // Clean display for Block export  
+            document.getElementById('blockOutput').textContent = blockExport;
+        }
+
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            const text = element.textContent;
+
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                btn.style.background = '#7a6a5b';
+
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '#a08e7c';
+                }, 2000);
+            }).catch(err => {
+                alert('Failed to copy: ' + err);
+            });
+        }
+
+        // Auto-generate on page load
+        window.onload = function() {
+            generateHandlebars();
+        };
+    </script>
+</body>
+
+</html>
