@@ -1,0 +1,10 @@
+.drag-n-drop-placeholder {
+  border: 2px dashed black; 
+}
+section[visual-editor]:hover {
+  border: 2px dashed black; 
+  cursor: grab;
+}
+section[visual-editor] {
+  border: 2px solid transparent; 
+}
