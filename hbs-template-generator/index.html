@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Template Handlebars</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f1e8;
+            color: #5c4b37;
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #fffbf0;
+            box-shadow: 0 5px 15px rgba(92, 75, 55, 0.08);
+            overflow: hidden;
+            min-height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background-color: #8c7b6b;
+            color: #fffbf0;
+            padding: 25px 30px;
+            border-bottom: 1px solid #d3c8b5;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            flex: 1;
+        }
+
+        .input-section,
+        .output-section {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-section {
+            background-color: #f9f6ef;
+            border-right: 1px solid #e5ddd0;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: #5c4b37;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #d3c8b5;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #5c4b37;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d3c8b5;
+            background-color: #fff;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+            font-family: 'Courier New', monospace;
+            color: #5c4b37;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #8c7b6b;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 300px;
+        }
+
+        .generate-btn {
+            background-color: #8c7b6b;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-top: 10px;
+        }
+
+        .generate-btn:hover {
+            background-color: #7a6a5b;
+        }
+
+        .output-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .output-label {
+            font-weight: 600;
+            color: #5c4b37;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .copy-btn {
+            background: #a08e7c;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .copy-btn:hover {
+            background: #8c7b6b;
+        }
+
+        .output-code {
+            background: #2d2a26;
+            color: #e5ddd0;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            overflow-x: auto;
+            white-space: pre;
+            flex: 1;
+            min-height: 400px;
+        }
+
+        /* Scrollbar styling */
+        .output-code::-webkit-scrollbar {
+            height: 10px;
+        }
+
+        .output-code::-webkit-scrollbar-track {
+            background: #3c3832;
+        }
+
+        .output-code::-webkit-scrollbar-thumb {
+            background: #8c7b6b;
+        }
+
+        .output-code::-webkit-scrollbar-thumb:hover {
+            background: #7a6a5b;
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .input-section {
+                border-right: none;
+                border-bottom: 1px solid #e5ddd0;
+            }
+        }
+
+        @media (max-width: 600px) {
+
+            .header,
+            .input-section,
+            .output-section {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background-color: #8c7b6b;
+            color: white;
+            border-radius: 5px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s, transform 0.3s;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 Generator Template Handlebars</h1>
+            <p>Convert HTML lengkap menjadi template Handlebars dengan logika is_export</p>
+        </div>
+
+        <div class="main-content">
+            <div class="input-section">
+                <h2 class="section-title">Input Template</h2>
+
+                <div class="form-group">
+                    <label for="templateName">Nama Template:</label>
+                    <input type="text" id="templateName" value="Sample Template" placeholder="Masukkan nama template...">
+                </div>
+
+                <div class="form-group">
+                    <label for="htmlInput">HTML Lengkap:</label>
+                    <textarea id="htmlInput" placeholder="Masukkan HTML lengkap yang ingin dikonversi..."><!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Contoh Template</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+      body { font-family: Arial, sans-serif; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Website Title</h1>
+    </header>
+    <main>
+      <div class="content">
+        <p>Ini adalah konten utama</p>
+      </div>
+    </main>
+    <footer>
+      <p>Copyright 2023</p>
+    </footer>
+    <script src="script.js"></script>
+  </body>
+</html></textarea>
+                </div>
+
+                <button class="generate-btn" onclick="generateTemplate()">
+                    ✨ Generate Template
+                </button>
+            </div>
+
+            <div class="output-section">
+                <h2 class="section-title">Output Template</h2>
+
+                <div class="output-container">
+                    <div class="output-label">
+                        Template Handlebars:
+                        <button class="copy-btn" onclick="copyToClipboard('templateOutput', this)">Copy</button>
+                    </div>
+                    <div class="output-code" id="templateOutput">// Hasil template akan muncul di sini</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">Teks berhasil disalin!</div>
+
+    <script>
+        function generateTemplate() {
+            const htmlInput = document.getElementById('htmlInput').value;
+            const templateName = document.getElementById('templateName').value || 'Sample Template';
+
+            try {
+                // Parse HTML
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlInput, 'text/html');
+
+                // Ekstrak elemen head dan body
+                const headContent = extractHeadContent(doc.head);
+                const bodyContent = extractBodyContent(doc.body);
+
+                // Generate template Handlebars
+                const template = unescapeHtmlEntities(generateHandlebarsTemplate(headContent, bodyContent, templateName));
+
+                // Tampilkan hasil
+                document.getElementById('templateOutput').textContent = template;
+
+            } catch (error) {
+                alert('Error parsing HTML: ' + error.message);
+            }
+        }
+
+        function extractHeadContent(head) {
+            let headContent = '';
+            const allowedTags = ['meta', 'link', 'style', 'script'];
+
+            for (let element of head.children) {
+                if (allowedTags.includes(element.tagName.toLowerCase())) {
+                    headContent += element.outerHTML + '\n    ';
+                }
+            }
+
+            return headContent;
+        }
+
+        function extractBodyContent(body) {
+            let bodyContent = '';
+
+            // Hanya ambil script tags saja
+            for (let element of body.children) {
+                if (element.tagName.toLowerCase() === 'script') {
+                    bodyContent += element.outerHTML + '\n    ';
+                }
+            }
+
+            return bodyContent;
+        }
+
+        function unescapeHtmlEntities(str) {
+            if (typeof str !== 'string') return str;
+
+            const entityMap = {
+                '&amp;': '&',
+                '&lt;': '<',
+                '&gt;': '>',
+                '&quot;': '"',
+                '&#34;': '"',
+                '&#x22;': '"',
+                '&apos;': "'",
+                '&#39;': "'",
+                '&#x27;': "'",
+                '&nbsp;': ' ',
+                '&#160;': ' ',
+                '&copy;': '©',
+                '&reg;': '®',
+                '&trade;': '™',
+                '&hellip;': '…',
+                '&emdash;': '—',
+                '&endash;': '–',
+                '&#96;': '`', // numeric entity untuk backtick
+                '&#x60;': '`', // hex entity untuk backtick
+                '&#92;': '\\', // numeric entity untuk backslash
+                '&#x5C;': '\\' // hex entity untuk backslash
+            };
+
+            return str.replace(/&(#[0-9]+|#x[0-9a-f]+|[a-z]+);/gi, (match) => {
+                // Cek di entity map pertama
+                if (entityMap[match]) {
+                    return entityMap[match];
+                }
+
+                // Handle numeric entities (&#123;)
+                if (match.startsWith('&#')) {
+                    const code = match.startsWith('&#x') ?
+                        parseInt(match.substring(3, match.length - 1), 16) // hexadecimal
+                        :
+                        parseInt(match.substring(2, match.length - 1), 10); // decimal
+
+                    return isNaN(code) ? match : String.fromCharCode(code);
+                }
+
+                return match;
+            });
+        }
+
+        function generateHandlebarsTemplate(headContent, bodyContent, templateName) {
+            return String.raw`const document = {
+  hbs: &#96;&lt;!doctype html&gt;
+&lt;html lang="en"&gt;
+  &lt;head&gt;
+    &lt;title&gt;{{#if title}}{{title}}{{else}}Hello, world!{{/if}}&lt;/title&gt;
+    ${headContent}
+    {{#unless is_export}}&lt;link rel="stylesheet" href="https://react-design-tools.tcp4.me/hbs-base/rdesign.css"&gt;{{/unless}}
+  &lt;/head&gt;
+  &lt;body&gt;
+  
+  &lt;div class="{{#unless is_export}}{{else}}sortable{{/unless}}"&gt;
+    {{{content}}}
+  &lt;/div&gt;
+  
+  ${bodyContent}
+  
+  {{#unless is_export}}
+  &lt;script src="https://react-design-tools.tcp4.me/hbs-base/rdesign.js"&gt;&lt;/script&gt;
+  {{/unless}}
+  &lt;/body&gt;
+&lt;/html&gt;&#96;,
+  name: '${templateName}'
+};
+
+export default document;`;
+        }
+
+
+        function copyToClipboard(elementId, button) {
+            const element = document.getElementById(elementId);
+            const text = element.textContent;
+
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.style.background = '#7a6a5b';
+
+                // Show notification
+                showNotification('Teks berhasil disalin!');
+
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '#a08e7c';
+                }, 2000);
+            }).catch(err => {
+                showNotification('Gagal menyalin: ' + err, true);
+            });
+        }
+
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.backgroundColor = isError ? '#e74c3c' : '#8c7b6b';
+
+            notification.classList.add('show');
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Auto-generate on page load
+        window.onload = function() {
+            generateTemplate();
+        };
+    </script>
+</body>
+
+</html>
