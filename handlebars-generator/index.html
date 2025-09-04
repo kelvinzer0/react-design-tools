@@ -5,9 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HTML to Handlebars Template Generator</title>
-    <meta name="description" content="Convert your HTML code into Handlebars templates with default data. Generate preview and block export easily.">
-    <meta name="keywords" content="HTML to Handlebars, Handlebars generator, HTML converter, template generator, web development tools">
-
     <style>
         * {
             margin: 0;
@@ -230,45 +227,33 @@
             }
         }
 
-        .keyword {
-            color: #d8a657;
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background-color: #8c7b6b;
+            color: white;
+            border-radius: 5px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s, transform 0.3s;
+            z-index: 1000;
         }
 
-        .string {
-            color: #a39a74;
-        }
-
-        .property {
-            color: #d6d0b9;
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
         }
     </style>
 </head>
 
 <body>
-    <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "HTML to Handlebars Template Generator",
-  "url": "https://react-design-tools.tcp4.me/handlebars-generator",
-  "applicationCategory": "WebDevelopmentTool",
-  "description": "Convert HTML code into Handlebars templates with default data and export block preview.",
-  "operatingSystem": "Web",
-  "creator": {
-    "@type": "Person",
-    "name": "Kelvin Yuli Andrian"
-  }
-}
-</script>
-
     <div class="container">
         <div class="header">
             <h1>🔧 HTML to Handlebars Template Generator</h1>
             <p>Convert your HTML code into Handlebars templates with default data</p>
-
-            
-            
-
         </div>
 
         <div class="main-content">
@@ -305,7 +290,7 @@
                     <div class="output-group">
                         <div class="output-label">
                             Template Handlebars:
-                            <button class="copy-btn" onclick="copyToClipboard('hbsOutput')">Copy</button>
+                            <button class="copy-btn" onclick="copyToClipboard('hbsOutput', this)">Copy</button>
                         </div>
                         <div class="output-code" id="hbsOutput">// Generate template terlebih dahulu</div>
                     </div>
@@ -313,7 +298,7 @@
                     <div class="output-group">
                         <div class="output-label">
                             Export Block:
-                            <button class="copy-btn" onclick="copyToClipboard('blockOutput')">Copy</button>
+                            <button class="copy-btn" onclick="copyToClipboard('blockOutput', this)">Copy</button>
                         </div>
                         <div class="output-code" id="blockOutput">// Generate block terlebih dahulu</div>
                     </div>
@@ -321,6 +306,8 @@
             </div>
         </div>
     </div>
+
+    <div class="notification" id="notification">Teks berhasil disalin!</div>
 
     <script>
         let elementCounter = 0;
@@ -339,7 +326,8 @@
                 const body = doc.body;
 
                 const defaultData = {};
-                const processedHTML = processElement(body, defaultData);
+                const config = {};
+                const processedHTML = processElement(body, defaultData, config);
 
                 // Generate Handlebars template
                 const hbsTemplate = processedHTML.innerHTML;
@@ -349,7 +337,7 @@
                 const previewImageUrl = "data:image/svg+xml;base64," + btoa(svgText);
 
                 // Generate block export
-                const blockExport = generateBlockExport(hbsTemplate, blockName, category, defaultData, previewImageUrl);
+                const blockExport = generateBlockExport(hbsTemplate, blockName, category, defaultData, config, previewImageUrl);
 
                 // Display results
                 displayResults(hbsTemplate, blockExport);
@@ -359,13 +347,13 @@
             }
         }
 
-        function processElement(element, defaultData) {
+        function processElement(element, defaultData, config) {
             const clonedElement = element.cloneNode(true);
 
             // Process all children first
             const children = Array.from(clonedElement.children);
             children.forEach(child => {
-                const processedChild = processElement(child, defaultData);
+                const processedChild = processElement(child, defaultData, config);
                 child.parentNode.replaceChild(processedChild, child);
             });
 
@@ -379,16 +367,24 @@
                     if (attr.value && attr.value.trim()) {
                         const key = `${tagName}_${attr.name}_${elementCounter}`;
                         defaultData[key] = attr.value;
+                        config[key] = {
+                            type: "string",
+                            name: key
+                        };
                         clonedElement.setAttribute(attr.name, `{{${key}}}`);
                     }
                 });
 
                 // Process text content for specific tags
-                if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'div', 'a', 'button'].includes(tagName)) {
+                if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'div', 'a', 'button', 'li', 'td', 'th', 'label', 'figcaption'].includes(tagName)) {
                     const textContent = getDirectTextContent(clonedElement);
                     if (textContent && textContent.trim()) {
                         const key = `${tagName}_content_${elementCounter}`;
                         defaultData[key] = textContent.trim();
+                        config[key] = {
+                            type: "string",
+                            name: key
+                        };
 
                         // Replace only direct text content
                         replaceDirectTextContent(clonedElement, `{{${key}}}`);
@@ -400,11 +396,19 @@
                     if (!clonedElement.hasAttribute('src')) {
                         const key = `img_src_${elementCounter}`;
                         defaultData[key] = 'image.jpg';
+                        config[key] = {
+                            type: "string",
+                            name: key
+                        };
                         clonedElement.setAttribute('src', `{{${key}}}`);
                     }
                     if (!clonedElement.hasAttribute('alt')) {
                         const key = `img_alt_${elementCounter}`;
                         defaultData[key] = 'Image description';
+                        config[key] = {
+                            type: "string",
+                            name: key
+                        };
                         clonedElement.setAttribute('alt', `{{${key}}}`);
                     }
                 }
@@ -451,9 +455,10 @@ ${escapedTemplate}
 </svg>`;
         }
 
-        function generateBlockExport(hbs, name, category, defaultData, previewImageUrl) {
+        function generateBlockExport(hbs, name, category, defaultData, config, previewImageUrl) {
             const hbsString = JSON.stringify(hbs, null, 2);
             const defaultDataString = JSON.stringify(defaultData, null, 4);
+            const configString = JSON.stringify(config, null, 4);
 
             return `const hbs = ${hbsString};
 
@@ -474,7 +479,8 @@ const block = {
   name: "${name}",
   previewImageUrl,
   category: "${category}",
-  defaultData: ${defaultDataString}
+  defaultData: ${defaultDataString},
+  config: ${configString}
 };
 
 export default block;`;
@@ -488,23 +494,37 @@ export default block;`;
             document.getElementById('blockOutput').textContent = blockExport;
         }
 
-        function copyToClipboard(elementId) {
+        function copyToClipboard(elementId, button) {
             const element = document.getElementById(elementId);
             const text = element.textContent;
 
             navigator.clipboard.writeText(text).then(() => {
-                const btn = event.target;
-                const originalText = btn.textContent;
-                btn.textContent = 'Copied!';
-                btn.style.background = '#7a6a5b';
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.style.background = '#7a6a5b';
+
+                // Show notification
+                showNotification('Teks berhasil disalin!');
 
                 setTimeout(() => {
-                    btn.textContent = originalText;
-                    btn.style.background = '#a08e7c';
+                    button.textContent = originalText;
+                    button.style.background = '#a08e7c';
                 }, 2000);
             }).catch(err => {
-                alert('Failed to copy: ' + err);
+                showNotification('Gagal menyalin: ' + err, true);
             });
+        }
+
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.backgroundColor = isError ? '#e74c3c' : '#8c7b6b';
+
+            notification.classList.add('show');
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
         }
 
         // Auto-generate on page load
