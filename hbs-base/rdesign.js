@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
     Sortable.create(mainContainer, sortableOptions);
 
     // Initialize all nested content areas
-    document.querySelectorAll('.content-area').forEach(area => {
+    document.querySelectorAll('.rdcontent-drop').forEach(area => {
         Sortable.create(area, sortableOptions);
     });
 
