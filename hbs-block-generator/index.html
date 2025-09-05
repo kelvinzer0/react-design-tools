@@ -271,6 +271,12 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="assetsHost">Assets Host:</label>
+                    <input type="text" id="assetsHost" value="" placeholder="https://example.com">
+                    <div class="info-text">Kosongkan untuk menggunakan path relatif asli</div>
+                </div>
+
+                <div class="form-group">
                     <label for="htmlInput">HTML Input:</label>
                     <textarea id="htmlInput" placeholder="Masukkan HTML yang ingin dikonversi...">&lt;div id="hero" class="main-section"&gt;
   &lt;h2 class="title"&gt;Selamat Datang&lt;/h2&gt;
@@ -316,35 +322,145 @@
             const htmlInput = document.getElementById('htmlInput').value;
             const blockName = document.getElementById('blockName').value || 'generated block';
             const category = document.getElementById('category').value || 'general';
-
+            const assetsHost = document.getElementById('assetsHost').value.trim(); // Get assets host
+        
             elementCounter = 0;
-
+        
             try {
                 // Parse HTML
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(htmlInput, 'text/html');
                 const body = doc.body;
-
+        
                 const defaultData = {};
                 const config = {};
-                const processedHTML = processElement(body, defaultData, config);
-
+                
+                // First update asset paths if assetsHost is provided
+                let processedBody = body;
+                if (assetsHost) {
+                    processedBody = updateAssetPaths(body, assetsHost);
+                }
+                
+                const finalProcessedHTML = processElement(processedBody, defaultData, config);
+        
                 // Generate Handlebars template
-                const hbsTemplate = processedHTML.innerHTML;
-
+                const hbsTemplate = finalProcessedHTML.innerHTML;
+        
                 // Generate SVG preview
                 const svgText = generateSVG(hbsTemplate);
                 const previewImageUrl = "data:image/svg+xml;base64," + btoa(svgText);
-
+        
                 // Generate block export
                 const blockExport = generateBlockExport(hbsTemplate, blockName, category, defaultData, config, previewImageUrl);
-
+        
                 // Display results
                 displayResults(hbsTemplate, blockExport);
-
+        
             } catch (error) {
                 alert('Error parsing HTML: ' + error.message);
             }
+        }
+
+        // Include the updateAssetPaths and updateCssUrls functions here
+        function updateAssetPaths(element, assetsHost) {
+            if (!assetsHost) return element;
+            
+            const clonedElement = element.cloneNode(true);
+            
+            // Normalize assets host (remove trailing slash)
+            const normalizedHost = assetsHost.replace(/\/$/, '');
+            
+            // Helper function to check if URL is relative
+            function isRelativeUrl(url) {
+                return url && 
+                       !url.startsWith('http') && 
+                       !url.startsWith('//') && 
+                       !url.startsWith('#') && 
+                       !url.startsWith('mailto:') &&
+                       !url.startsWith('tel:') &&
+                       !url.startsWith('data:');
+            }
+            
+            // Helper function to convert relative URL to absolute
+            function makeAbsoluteUrl(url) {
+                if (!isRelativeUrl(url)) return url;
+                return url.startsWith('/') ? `${normalizedHost}${url}` : `${normalizedHost}/${url}`;
+            }
+            
+            // Update href attributes
+            if (clonedElement.hasAttribute('href')) {
+                const href = clonedElement.getAttribute('href');
+                const newHref = makeAbsoluteUrl(href);
+                if (newHref !== href) {
+                    clonedElement.setAttribute('href', newHref);
+                }
+            }
+            
+            // Update src attributes
+            if (clonedElement.hasAttribute('src')) {
+                const src = clonedElement.getAttribute('src');
+                const newSrc = makeAbsoluteUrl(src);
+                if (newSrc !== src) {
+                    clonedElement.setAttribute('src', newSrc);
+                }
+            }
+            
+            // Update style attribute for inline CSS
+            if (clonedElement.hasAttribute('style')) {
+                const style = clonedElement.getAttribute('style');
+                const updatedStyle = updateCssUrls(style, normalizedHost);
+                if (updatedStyle !== style) {
+                    clonedElement.setAttribute('style', updatedStyle);
+                }
+            }
+            
+            // Process all child elements recursively
+            const childElements = clonedElement.querySelectorAll('*');
+            childElements.forEach(child => {
+                if (child.hasAttribute('href')) {
+                    const href = child.getAttribute('href');
+                    const newHref = makeAbsoluteUrl(href);
+                    if (newHref !== href) {
+                        child.setAttribute('href', newHref);
+                    }
+                }
+                
+                if (child.hasAttribute('src')) {
+                    const src = child.getAttribute('src');
+                    const newSrc = makeAbsoluteUrl(src);
+                    if (newSrc !== src) {
+                        child.setAttribute('src', newSrc);
+                    }
+                }
+                
+                if (child.hasAttribute('style')) {
+                    const style = child.getAttribute('style');
+                    const updatedStyle = updateCssUrls(style, normalizedHost);
+                    if (updatedStyle !== style) {
+                        child.setAttribute('style', updatedStyle);
+                    }
+                }
+            });
+            
+            return clonedElement;
+        }
+        
+        function updateCssUrls(cssText, assetsHost) {
+            if (!cssText || !assetsHost) return cssText;
+            
+            const urlRegex = /url\(\s*(['"]?)([^'"\)]+)\1\s*\)/gi;
+            
+            return cssText.replace(urlRegex, (match, quote, url) => {
+                if (url.startsWith('http') || 
+                    url.startsWith('//') || 
+                    url.startsWith('data:') ||
+                    url.startsWith('#')) {
+                    return match;
+                }
+                
+                const absoluteUrl = url.startsWith('/') ? `${assetsHost}${url}` : `${assetsHost}/${url}`;
+                return `url(${quote}${absoluteUrl}${quote})`;
+            });
         }
 
         function processElement(element, defaultData, config) {
