@@ -1,10 +1,14 @@
-.drag-n-drop-placeholder {
-  border: 2px dashed black; 
+.sortable-ghost {
+    opacity: 0.4;
+    border: 2px dashed black;
 }
 section[visual-editor]:hover {
-  border: 2px dashed black; 
-  cursor: grab;
+    border: 2px dashed black; 
+    cursor: grab;
 }
 section[visual-editor] {
-  border: 2px solid transparent; 
+    border: 2px solid transparent; 
+}
+.rdcontent-drop {
+    min-height: 50px; /* Visual cue for empty drop zones */
 }
