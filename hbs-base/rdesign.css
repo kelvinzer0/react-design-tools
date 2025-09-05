@@ -1,38 +1,18 @@
-.responsive-icon { 
-    font-family: 'Material Icons'; 
-    font-size: inherit; 
-    line-height: 1; 
-    vertical-align: middle; 
-    transform: translateY(-0.1em); 
-    display: inline-block; 
-}        
 
-body { 
-    animation: fadeInAnimation ease-in 150ms; 
-    animation-iteration-count: 1; 
-    animation-fill-mode: forwards; 
-} 
-
-@keyframes fadeInAnimation { 
-    0% { opacity: 0; } 
-    100% { opacity: 1; } 
-} 
-
-/* hanya muncul kalau bukan export */
 .sortable-ghost {
-    opacity: 0.4;
-    border: 2px dashed black;
+    opacity: 0.4 !important;
+    border: 2px dashed black !important;
 }
 
 section[visual-editor]:hover {
-    border: 2px dashed black; 
-    cursor: grab;
+    border: 2px dashed black !important; 
+    cursor: grab !important;
 }
 
 section[visual-editor] {
-    border: 2px solid transparent; 
+    border: 2px solid transparent !important;
 }
 
 .content-area {
-    min-height: 50px; /* Visual cue for empty drop zones */
+    min-height: 50px !important;
 }
