@@ -69,7 +69,11 @@ function getRandomColor() {
 
 document.querySelectorAll(".rcontent-area").forEach(el => {
   const currentBg = window.getComputedStyle(el).backgroundColor.trim().toLowerCase();
-  if (currentBg === "transparent" || currentBg === "rgba(0, 0, 0, 0)") {
+
+  if (
+    (currentBg === "transparent" || currentBg === "rgba(0, 0, 0, 0)") &&
+    el.innerHTML.trim() === ""
+  ) {
     el.style.backgroundColor = getRandomColor();
   }
 });
