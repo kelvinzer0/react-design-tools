@@ -13,6 +13,6 @@ section[visual-editor] {
     border: 2px solid transparent !important;
 }
 
-.content-area {
+.rcontent-area {
     min-height: 50px !important;
 }
