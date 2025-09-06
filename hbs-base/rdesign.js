@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Initialize all nested content areas
-    document.querySelectorAll('.content-area').forEach(area => {
+    document.querySelectorAll('.rcontent-area').forEach(area => {
         Sortable.create(area, sortableOptions);
     });
 
@@ -67,7 +67,7 @@ function getRandomColor() {
   return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
 }
 
-document.querySelectorAll(".content-area").forEach(el => {
+document.querySelectorAll(".rcontent-area").forEach(el => {
   const currentBg = window.getComputedStyle(el).backgroundColor.trim().toLowerCase();
   if (currentBg === "transparent" || currentBg === "rgba(0, 0, 0, 0)") {
     el.style.backgroundColor = getRandomColor();
